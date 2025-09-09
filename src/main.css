@@ -13,12 +13,4 @@ body {
 
 .progressCircle {
   stroke-linecap: round;
-  animation: countdown 300s ease forwards;
-  animation-play-state: paused;
-}
-
-@keyframes countdown {
-  to {
-    stroke-dashoffset: 0;
-  }
 }

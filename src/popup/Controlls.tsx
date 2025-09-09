@@ -1,14 +1,19 @@
+import lightModeIcon from '/icons/light.svg';
+import darkModeIcon from '/icons/dark.svg';
+
 type Props = {
   startTime: () => void;
   stopTime: () => void;
   resetTime: () => void;
-  isStarted: boolean;
+  isRunning: boolean;
+  isDarkMode: boolean;
+  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Controlls = ({ startTime, stopTime, resetTime, isStarted }: Props) => {
+const Controlls = ({ startTime, stopTime, resetTime, isRunning, isDarkMode, setIsDarkMode }: Props) => {
 
   const toggleTime = () => {
-    if (isStarted) {
+    if (isRunning) {
       stopTime();
     }
     else {
@@ -18,15 +23,23 @@ const Controlls = ({ startTime, stopTime, resetTime, isStarted }: Props) => {
   return (
     <div className="pt-5 border-t-[1px] border-[#272322] flex justify-between items-center">
       <a className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/alwaysOnTop.svg" /></a>
+
       <div className="flex gap-[6px]">
         <a onClick={resetTime} className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/reset.svg" /></a>
-        <a onClick={toggleTime} className="flex items-center px-[16px] text-white text-[14px] font-medium rounded-full bg-[#1D1A19]" href="#">{isStarted ? "Durdur" : "Başlat"}</a>
+        <a onClick={toggleTime} className="flex items-center px-[16px] text-white text-[14px] font-medium rounded-full bg-[#1D1A19]" href="#">{isRunning ? "Durdur" : "Başlat"}</a>
         <a className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/options.svg" /></a>
       </div>
-      <a className="flex item-center p-2 rounded-full bg-[#1D1A19]" href="#">
-        <img className="w-5 h-5 rounded-full" src="/icons/light.svg" />
-        <img className="w-5 h-5 rounded-full" src="/icons/dark.svg" />
-      </a>
+
+      {/* Light mode Dark Mode Toggle Button */}
+      <div onClick={() => setIsDarkMode(!isDarkMode)} className="flex item-center gap-2 p-1 rounded-full bg-[#1D1A19] cursor-pointer">
+        <a className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors duration-75 ${!isDarkMode ? 'bg-gradient-to-b from-[#FF0000] to-[#DC8E00]' : ' '}`}>
+          <img className='w-4 h-4' src={lightModeIcon} />
+        </a>
+        <a className={`w-6 h-6 flex items-center justify-center rounded-full ${isDarkMode ? 'bg-gradient-to-b from-[#FF0000] to-[#DC8E00]' : ' '}`}>
+          <img className='w-4 h-4' src={darkModeIcon} />
+        </a>
+      </div>
+
     </div>
   )
 }

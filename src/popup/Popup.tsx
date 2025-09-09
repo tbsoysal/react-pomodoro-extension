@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Controlls from "./Controlls";
 import TabMenu from "./TabMenu";
 import Timer from "./Timer";
+import { useCircleTimer } from "./useCircleTimer";
 
 const Popup = () => {
   type Modes = {
@@ -9,81 +10,45 @@ const Popup = () => {
     short_break: number,
     long_break: number
   }
-  type Time = {
-    minutes: number,
-    seconds: number
-  }
 
   const [currMode, setCurrMode] = useState<keyof Modes>("focus");
-  const [currTime, setCurrTime] = useState<Time>({ minutes: 0, seconds: 0 })
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [isStarted, setIsStarted] = useState<boolean>(false);
-  const ring = document.querySelector<SVGCircleElement>(".progressCircle");
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [modes, setModes] = useState<Modes>({
     "focus": 25,
     "short_break": 5,
     "long_break": 30
   })
 
-  const startTime = () => {
-    setIsStarted(true);
-    if (ring) {
-      ring.style.animationDuration = `${currTime.minutes * 60}s`;
-      ring.style.animationPlayState = "running";
-    }
-    if (intervalRef.current) return;
-    intervalRef.current = setInterval(() => {
-      decreaseTime();
-    }, 1000);
-  };
+  const duration = modes[currMode] * 60 * 1000; // convert minutes → ms
+  const {
+    offset,
+    circumference,
+    start,
+    pause,
+    reset,
+    isRunning,
+    currentTime
+  } = useCircleTimer(duration);
 
-  const stopTime = () => {
-    setIsStarted(false);
-    if (ring)
-      ring.style.animationPlayState = "paused";
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
+  const startTime = () => start();
 
-  const resetTime = () => {
-    stopTime();
-    setCurrTime({ minutes: modes[currMode], seconds: 0 });
-  }
+  const stopTime = () => pause();
 
-  const decreaseTime = () => {
-    setCurrTime(prev => {
-      let { minutes, seconds } = prev;
-      if (seconds === 0) {
-        if (minutes === 0) {
-          stopTime();
-          return prev;
-        }
-        minutes -= 1;
-        seconds = 59;
-      }
-      else {
-        seconds -= 1;
-      }
-      return { minutes, seconds };
-    })
-  }
+  const resetTime = () => reset();
 
   useEffect(() => {
     setModes(prev => prev);
     stopTime();
-    const duration = modes[currMode];
-    setCurrTime({ minutes: duration, seconds: 0 })
+    reset();
   }, [currMode])
 
 
   return (
-    <div className="w-[380px] h-[336px] p-5 bg-[#0D0402]">
+    <div className={`w-[380px] h-[336px] p-5 ${isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `} >
       <TabMenu currMode={currMode} setCurrMode={setCurrMode} />
-      <Timer currTime={currTime} />
-      <Controlls startTime={startTime} stopTime={stopTime} resetTime={resetTime} isStarted={isStarted} />
-    </div>
+      <Timer currentTime={currentTime} circumference={circumference} offset={offset} isDarkMode={isDarkMode} />
+      <Controlls startTime={startTime} stopTime={stopTime} resetTime={resetTime} isRunning={isRunning} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+    </div >
   )
 }
 

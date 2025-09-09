@@ -4,10 +4,13 @@ type Time = {
 }
 
 type Props = {
-  currTime: Time;
+  currentTime: Time;
+  offset: number;
+  circumference: number;
+  isDarkMode: boolean;
 }
 
-const Timer = ({ currTime }: Props) => {
+const Timer = ({ currentTime, offset, circumference, isDarkMode }: Props) => {
   return (
     <div className="relative flex justify-center items-center m-5">
       <svg width="160" height="160">
@@ -15,17 +18,17 @@ const Timer = ({ currTime }: Props) => {
         <circle className="progressCircle"
           stroke="#F02900"
           strokeWidth="16"
-          strokeDasharray="452.38"
-          strokeDashoffset="452.38"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
           transform="rotate(-90 80 80)"
           fill="transparent"
           r="72"
           cx="80"
           cy="80" />
       </svg>
-      <div className="absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] text-2xl font-semibold text-white">
-        {currTime.minutes.toString().padStart(2, "0")}:
-        {currTime.seconds.toString().padStart(2, "0")}
+      <div className={`absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>
+        {currentTime.minutes.toString().padStart(2, "0")}:
+        {currentTime.seconds.toString().padStart(2, "0")}
       </div>
     </div>
   )
