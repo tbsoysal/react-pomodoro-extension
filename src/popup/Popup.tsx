@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Controlls from "./Controlls";
 import TabMenu from "./TabMenu";
 import Timer from "./Timer";
@@ -13,13 +13,13 @@ const Popup = () => {
 
   const [currMode, setCurrMode] = useState<keyof Modes>("focus");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [modes, setModes] = useState<Modes>({
+  const [modes, _setModes] = useState<Modes>({
     "focus": 25,
     "short_break": 5,
     "long_break": 30
   })
 
-  const duration = modes[currMode] * 60 * 1000; // convert minutes → ms
+  const duration = modes[currMode] * 60000; // convert minutes → ms
   const {
     offset,
     circumference,
@@ -35,13 +35,6 @@ const Popup = () => {
   const stopTime = () => pause();
 
   const resetTime = () => reset();
-
-  useEffect(() => {
-    setModes(prev => prev);
-    stopTime();
-    reset();
-  }, [currMode])
-
 
   return (
     <div className={`w-[380px] h-[336px] p-5 ${isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `} >

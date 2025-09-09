@@ -11,9 +11,10 @@ export default defineConfig({
       input: {
         popup: resolve(__dirname, "index.html"),
         options: resolve(__dirname, "options.html"),
+        background: resolve(__dirname, "/src/background.ts")
       },
       output: {
-        entryFileNames: `assets/[name].js`,
+        entryFileNames: `[name].js`,
         chunkFileNames: `assets/[name].js`,
         assetFileNames: `assets/[name].[ext]`,
       },

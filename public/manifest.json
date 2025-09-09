@@ -3,9 +3,15 @@
   "name": "My Vite React Extension",
   "version": "1.0.0",
   "description": "A Chrome extension built with Vite and React",
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "index.html"
   },
   "options_page": "options.html",
-  "permissions": []
+  "permissions": [
+    "storage",
+    "alarms"
+  ]
 }

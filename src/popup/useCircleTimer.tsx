@@ -15,11 +15,6 @@ interface UseCircleTimerReturn {
   reset: () => void;
 }
 
-/**
- * Custom hook to animate a circle strokeDashoffset using requestAnimationFrame
- * @param duration - total time of the countdown in milliseconds
- * @param radius - radius of the circle (default: 72)
- */
 export function useCircleTimer(
   duration: number,
   radius: number = 72
@@ -33,8 +28,8 @@ export function useCircleTimer(
   };
 
   // State
-  const [isRunning, setIsRunning] = useState(false);
-  const [currentTime, setCurrentTime] = useState<TimerState>({ minutes: 0, seconds: 0 });
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<TimerState>(initialTime);
 
   // Refs for persistent values
   const requestRef = useRef<number | null>(null);
@@ -80,6 +75,10 @@ export function useCircleTimer(
   const start = useCallback(() => {
     if (!isRunning) {
       setIsRunning(true);
+      chrome.storage.local.set({ IsRunning: true });
+      chrome.storage.local.get(["IsRunning"], (result) => {
+        console.log("(start func)IsRunning is ", result.IsRunning)
+      })
       requestRef.current = requestAnimationFrame(animate);
     }
   }, [isRunning, animate]);
@@ -90,6 +89,10 @@ export function useCircleTimer(
   const pause = useCallback(() => {
     if (isRunning) {
       setIsRunning(false);
+      chrome.storage.local.set({ IsRunning: false });
+      chrome.storage.local.get(["IsRunning"], (result) => {
+        console.log("(pause func)IsRunning is ", result.IsRunning)
+      })
 
       if (requestRef.current !== null) {
         cancelAnimationFrame(requestRef.current);
@@ -108,6 +111,10 @@ export function useCircleTimer(
    */
   const reset = useCallback(() => {
     setIsRunning(false);
+    chrome.storage.local.set({ IsRunning: false });
+    chrome.storage.local.get(["IsRunning"], (result) => {
+      console.log("(reset func)IsRunning is ", result.IsRunning)
+    })
 
     if (requestRef.current !== null) {
       cancelAnimationFrame(requestRef.current);
@@ -133,14 +140,22 @@ export function useCircleTimer(
     return currOffsetRef.current;
   }, [duration]);
 
-  // Cleanup on unmount
   useEffect(() => {
+    setCurrentTime(initialTime);
+    chrome.storage.local.get(["IsRunning"], (result) => {
+      if (result.IsRunning !== undefined)
+        console.log("(useEffect)IsRunning is ", result.IsRunning)
+      else {
+        console.log("Its undefined so i defined it as False");
+        chrome.storage.local.set({ IsRunning: false })
+      }
+    })
     return () => {
       if (requestRef.current !== null) {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, []);
+  }, [duration]);
 
   return {
     circumference,
