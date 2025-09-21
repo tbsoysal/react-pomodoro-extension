@@ -3,21 +3,25 @@ import darkModeIcon from '/icons/dark.svg';
 
 type Props = {
   startTime: () => void;
-  stopTime: () => void;
+  pauseTime: () => void;
   resetTime: () => void;
-  isRunning: boolean;
+  continueTime: () => void;
+  status: "running" | "paused" | "stopped";
   isDarkMode: boolean;
   setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Controlls = ({ startTime, stopTime, resetTime, isRunning, isDarkMode, setIsDarkMode }: Props) => {
+const Controlls = ({ status, startTime, pauseTime, resetTime, continueTime, isDarkMode, setIsDarkMode }: Props) => {
 
   const toggleTime = () => {
-    if (isRunning) {
-      stopTime();
+    if (status === "running") {
+      pauseTime();
+    }
+    else if (status === "stopped") {
+      startTime();
     }
     else {
-      startTime();
+      continueTime();
     }
   }
   return (
@@ -26,7 +30,7 @@ const Controlls = ({ startTime, stopTime, resetTime, isRunning, isDarkMode, setI
 
       <div className="flex gap-[6px]">
         <a onClick={resetTime} className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/reset.svg" /></a>
-        <a onClick={toggleTime} className="flex items-center px-[16px] text-white text-[14px] font-medium rounded-full bg-[#1D1A19]" href="#">{isRunning ? "Durdur" : "Başlat"}</a>
+        <a onClick={toggleTime} className="flex items-center px-[16px] text-white text-[14px] font-medium rounded-full bg-[#1D1A19]" href="#">{status === "running" ? "Durdur" : status === "stopped" ? "Başlat" : "Devam Et"}</a>
         <a className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/options.svg" /></a>
       </div>
 
