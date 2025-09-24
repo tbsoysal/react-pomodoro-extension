@@ -10,7 +10,7 @@ interface TimerState {
 
 let timerState: TimerState = {
   status: 'stopped',
-  duration: 0,
+  duration: 25 * 1000 * 60,
   remaining: 0,
   startTime: null,
   pausedAt: null,
@@ -122,7 +122,6 @@ function stopTimer(): void {
 
   saveTimerState();
   updateBadge();
-  console.log('Timer stopped');
 }
 
 /**
@@ -189,8 +188,8 @@ function resetTimer(): void {
 
   timerState = {
     status: 'stopped',
-    duration: 0,
-    remaining: 0,
+    duration: DEFAULT_DURATIONS[timerState.mode] * 60 * 1000,
+    remaining: DEFAULT_DURATIONS[timerState.mode] * 60 * 1000,
     startTime: null,
     pausedAt: null,
     mode: timerState.mode,
@@ -204,15 +203,22 @@ function resetTimer(): void {
 /**
  * Change the mode and reset timer
  */
-function changeMode(currMode: "focus" | "short_break" | "long_break"): void {
-  timerState = {
-    ...timerState,
-    mode: currMode
-  };
+function changeMode(newMode: "focus" | "short_break" | "long_break"): void {
+  if (newMode !== timerState.mode) {
+    timerState = {
+      ...timerState,
+      status: "stopped",
+      duration: DEFAULT_DURATIONS[newMode] * 60 * 1000,
+      remaining: DEFAULT_DURATIONS[newMode] * 60 * 1000,
+      mode: newMode
+    };
 
-  saveTimerState();
-  updateBadge();
-  console.log("Mode change");
+    saveTimerState();
+    updateBadge();
+    console.log("Mode changed from ", timerState.mode, " to ", newMode);
+  } else {
+    console.log("Mode didnt changed beacuse its already ", timerState.mode);
+  }
 }
 
 /**

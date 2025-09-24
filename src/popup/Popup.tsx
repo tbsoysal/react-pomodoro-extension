@@ -48,6 +48,7 @@ const Popup = () => {
       }
     })
 
+
     // call back function for messages incoming from the script
     const messageListener = (msg: any) => {
       if (msg.type === "TIMER_UPDATE") {
@@ -71,18 +72,12 @@ const Popup = () => {
     }
   }, []);
 
-  // Reset time when mode changes
   useEffect(() => {
-    changeMode();
-    resetTime();
-  }, [currMode, modes]);
-
-  // Reset time when timer ends
-  useEffect(() => {
-    if (status === "stopped") {
-      resetTime();
-    }
-  }, [status])
+    chrome.runtime.sendMessage({ type: "CHANGE_MODE", newMode: currMode }, (response) => {
+      setDuration(response.state.duration);
+      setRemaining(response.state.remaining);
+    })
+  }, [currMode])
 
   // Timer control functions
   const startTime = () => {
@@ -125,10 +120,6 @@ const Popup = () => {
       }
     });
   };
-
-  const changeMode = () => {
-    chrome.runtime.sendMessage({ type: "CHANGE_MODE", currMode: currMode });
-  }
 
   return (
     <div className={`w-[380px] h-[336px] p-5 ${isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `} >
