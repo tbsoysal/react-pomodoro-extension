@@ -3,25 +3,21 @@ import darkModeIcon from '/icons/dark.svg';
 
 type Props = {
   startTime: () => void;
-  pauseTime: () => void;
+  stopTime: () => void;
   resetTime: () => void;
-  continueTime: () => void;
   status: "running" | "paused" | "stopped";
   isDarkMode: boolean;
   setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Controlls = ({ status, startTime, pauseTime, resetTime, continueTime, isDarkMode, setIsDarkMode }: Props) => {
+const Controlls = ({ status, startTime, stopTime, resetTime, isDarkMode, setIsDarkMode }: Props) => {
 
   const toggleTime = () => {
     if (status === "running") {
-      pauseTime();
-    }
-    else if (status === "stopped") {
-      startTime();
+      stopTime();
     }
     else {
-      continueTime();
+      startTime();
     }
   }
   return (
