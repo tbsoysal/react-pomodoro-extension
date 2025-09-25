@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import Controlls from "./Controlls";
-import TabMenu from "./TabMenu";
-import Timer from "./Timer";
+import DigitalTimerView from "./digital_timer_view/DigitalTimerView";
 
 const Popup = () => {
   type Modes = {
@@ -28,12 +26,14 @@ const Popup = () => {
 
   // Get timerState from background script
   function getLatestTimerState() {
-    chrome.runtime.sendMessage({ type: "GET_CURRENT_STATE" }, (response) => {
-      const timerState = response.reply;
-      setCurrMode(timerState.mode);
-      setDuration(timerState.duration);
-      setRemaining(timerState.timeLeft);
-      setStatus(timerState.status);
+    chrome?.runtime?.sendMessage({ type: "GET_CURRENT_STATE" }, (response) => {
+      if (response?.success && response.reply) {
+        const timerState = response.reply;
+        setCurrMode(timerState.mode);
+        setDuration(timerState.duration);
+        setRemaining(timerState.timeLeft);
+        setStatus(timerState.status);
+      }
     });
   }
 
@@ -54,9 +54,9 @@ const Popup = () => {
         });
       }
     }
-    chrome.runtime.onMessage.addListener(handleMessage);
+    chrome?.runtime?.onMessage.addListener(handleMessage);
 
-    return () => chrome.runtime.onMessage.removeListener(handleMessage);
+    return () => chrome?.runtime?.onMessage.removeListener(handleMessage);
   }, []);
 
   useEffect(() => {
@@ -64,17 +64,29 @@ const Popup = () => {
   }, [currMode])
 
 
-  const startTime = () => chrome.runtime.sendMessage({ type: "START_TIMER" }, (response) => console.log(response.reply));
-  const stopTime = () => chrome.runtime.sendMessage({ type: "STOP_TIMER" }, (response) => console.log(response.reply));
-  const resetTime = () => chrome.runtime.sendMessage({ type: "RESET_TIMER" }, (response) => console.log(response.reply));
-  const changeMode = () => chrome.runtime.sendMessage({ type: "CHANGE_MODE", newMode: currMode }, (response) => console.log(response.reply));
+  const startTime = () => chrome?.runtime?.sendMessage({ type: "START_TIMER" }, (response) => console.log(response.reply));
+  const stopTime = () => chrome?.runtime?.sendMessage({ type: "STOP_TIMER" }, (response) => console.log(response.reply));
+  const resetTime = () => chrome?.runtime?.sendMessage({ type: "RESET_TIMER" }, (response) => console.log(response.reply));
+  const changeMode = () => chrome?.runtime?.sendMessage({ type: "CHANGE_MODE", newMode: currMode }, (response) => console.log(response.reply));
+
+  const props = {
+    isDarkMode,
+    setIsDarkMode,
+    currMode,
+    setCurrMode,
+    remaining,
+    progress,
+    circumference,
+    status,
+    startTime,
+    stopTime,
+    resetTime,
+  }
 
   return (
-    <div className={`w-[380px] h-[336px] p-5 ${isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `} >
-      <TabMenu currMode={currMode} setCurrMode={setCurrMode} />
-      <Timer remaining={remaining} progress={progress} circumference={circumference} isDarkMode={isDarkMode} />
-      <Controlls status={status} startTime={startTime} resetTime={resetTime} stopTime={stopTime} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
-    </div >
+    <>
+      <DigitalTimerView {...props} />
+    </>
   )
 }
 

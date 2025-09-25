@@ -20,14 +20,30 @@ const Controlls = ({ status, startTime, stopTime, resetTime, isDarkMode, setIsDa
       startTime();
     }
   }
+
+  const openWindow = () => {
+    chrome.windows.create({
+      url: chrome.runtime.getURL("index.html"),
+      type: "popup",
+      width: 380,
+      height: 336,
+      top: 0,
+      left: 0
+    })
+  };
+
+  const openOptionsPage = () => {
+    chrome.runtime.openOptionsPage();
+  }
+
   return (
     <div className="pt-5 border-t-[1px] border-[#272322] flex justify-between items-center">
-      <a className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/alwaysOnTop.svg" /></a>
+      <a onClick={openWindow} className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/alwaysOnTop.svg" /></a>
 
       <div className="flex gap-[6px]">
         <a onClick={resetTime} className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/reset.svg" /></a>
         <a onClick={toggleTime} className="flex items-center px-[16px] text-white text-[14px] font-medium rounded-full bg-[#1D1A19]" href="#">{status === "running" ? "Durdur" : status === "stopped" ? "Başlat" : "Devam Et"}</a>
-        <a className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/options.svg" /></a>
+        <a onClick={openOptionsPage} className="flex items-center p-2 rounded-full bg-[#1D1A19]" href="#"><img className="w-5 h-5" src="/icons/options.svg" /></a>
       </div>
 
       {/* Light mode Dark Mode Toggle Button */}
