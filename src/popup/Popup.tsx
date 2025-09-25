@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import DigitalTimerView from "./digital_timer_view/DigitalTimerView";
+import SegmentedTimerView from "./segmented_timer_view/SegmentedTimerView";
 
 const Popup = () => {
   type Modes = {
@@ -85,7 +85,7 @@ const Popup = () => {
 
   return (
     <>
-      <DigitalTimerView {...props} />
+      <SegmentedTimerView {...props} />
     </>
   )
 }
