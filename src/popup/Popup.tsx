@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import SegmentedTimerView from "./segmented_timer_view/SegmentedTimerView";
+import CircularTimerView from "./circular_timer_view/CircularTimerView";
+import DigitalTimerView from "./digital_timer_view/DigitalTimerView";
 
 const Popup = () => {
   type Modes = {
@@ -9,9 +11,10 @@ const Popup = () => {
   }
 
   type TimerStatus = "running" | "stopped" | "paused";
+  type View = "circular" | "digital" | "segmented";
 
   const circumference = 2 * Math.PI * 72;
-  const [_modes, _setModes] = useState<Modes>({
+  const [modes, setModes] = useState<Modes>({
     "focus": 25,
     "short_break": 5,
     "long_break": 30
@@ -21,6 +24,7 @@ const Popup = () => {
   const [remaining, setRemaining] = useState<number>(0);
   const [status, setStatus] = useState<TimerStatus>("stopped");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [theme, setTheme] = useState<View>("circular");
   const progress = duration > 0 ? 1 - (remaining / duration) : 0;
 
 
@@ -33,11 +37,24 @@ const Popup = () => {
         setDuration(timerState.duration);
         setRemaining(timerState.timeLeft);
         setStatus(timerState.status);
+        setModes(timerState.mode_durations)
       }
     });
   }
 
+  function getLatestTheme() {
+    chrome.storage.sync.get("theme", (data) => {
+      if (data.theme) {
+        setTheme(data.theme);
+        console.log("Latest theme getted from storage: ", data.theme);
+      } else {
+        console.log("No theme found on storage");
+      }
+    })
+  }
+
   useEffect(() => {
+    getLatestTheme();
     getLatestTimerState();
 
     // Listen for updates from background script
@@ -47,33 +64,46 @@ const Popup = () => {
         setDuration(timerState.duration);
         setRemaining(timerState.timeLeft);
         setStatus(timerState.status);
-        setCurrMode((prev) => {
-          if (prev !== timerState.mode)
-            return timerState.mode;
-          return prev;
-        });
+        setCurrMode(timerState.mode); // Remove conditional logic
+        setModes(timerState.mode_durations); // Add this line to update modes
       }
     }
     chrome?.runtime?.onMessage.addListener(handleMessage);
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        getLatestTimerState();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    return () => chrome?.runtime?.onMessage.removeListener(handleMessage);
+    return () => {
+      chrome?.runtime?.onMessage.removeListener(handleMessage);
+      document.removeEventListener('visibilitychange', handleVisibilityChange); // Cleanup
+    };
   }, []);
 
   useEffect(() => {
     changeMode();
   }, [currMode])
 
+  useEffect(() => {
+    changeDurations();
+  }, [modes])
+
 
   const startTime = () => chrome?.runtime?.sendMessage({ type: "START_TIMER" }, (response) => console.log(response.reply));
   const stopTime = () => chrome?.runtime?.sendMessage({ type: "STOP_TIMER" }, (response) => console.log(response.reply));
   const resetTime = () => chrome?.runtime?.sendMessage({ type: "RESET_TIMER" }, (response) => console.log(response.reply));
   const changeMode = () => chrome?.runtime?.sendMessage({ type: "CHANGE_MODE", newMode: currMode }, (response) => console.log(response.reply));
+  const changeDurations = () => chrome?.runtime?.sendMessage({ type: "CHANGE_DURATIONS" }, (response) => (response.reply));
 
   const props = {
     isDarkMode,
     setIsDarkMode,
     currMode,
     setCurrMode,
+    modes,
+    setModes,
     remaining,
     progress,
     circumference,
@@ -83,9 +113,18 @@ const Popup = () => {
     resetTime,
   }
 
+  let themeToShow;
+
+  if (theme === "circular")
+    themeToShow = <CircularTimerView {...props} />;
+  else if (theme === "digital")
+    themeToShow = <DigitalTimerView {...props} />;
+  else
+    themeToShow = <SegmentedTimerView {...props} />;
+
   return (
     <>
-      <SegmentedTimerView {...props} />
+      {themeToShow}
     </>
   )
 }

@@ -9,9 +9,10 @@ interface TimerState {
   "duration": number;
   "status": "running" | "stopped" | "paused";
   "mode": keyof Modes;
+  "mode_durations": Modes;
 }
 
-const modes: Modes = {
+let modes: Modes = {
   focus: 25 * 60,
   short_break: 5 * 60,
   long_break: 30 * 60
@@ -22,7 +23,8 @@ const timerState: TimerState = {
   timeLeft: modes.focus,
   duration: modes.focus,
   status: 'stopped',
-  mode: 'focus'
+  mode: 'focus',
+  mode_durations: modes
 }
 
 function saveNewTimerState() {
@@ -75,18 +77,34 @@ function resetTimer() {
 
 // Change Mode function
 function changeMode(newMode: keyof Modes) {
-  console.log("currentMode: ", timerState.mode)
-  console.log("Newmode: ", newMode);
-  if (newMode !== timerState.mode) {
-    timerState.mode = newMode;
-    timerState.duration = modes[newMode];
-    timerState.timeLeft = modes[newMode];
-    timerState.status = "stopped";
-    clearInterval(timer);
+  timerState.mode = newMode;
+  timerState.duration = modes[newMode];
+  timerState.timeLeft = modes[newMode];
+  timerState.status = "stopped";
+  clearInterval(timer);
 
-    saveNewTimerState();
-    chrome.runtime.sendMessage({ type: "TIMER_UPDATE", newTimerState: timerState });
-  }
+  saveNewTimerState();
+  chrome.runtime.sendMessage({ type: "TIMER_UPDATE", newTimerState: timerState });
+
+}
+
+function changeDurations() {
+  chrome.storage.local.get("timerState", (result) => {
+    if (result.durations) {
+      // Update the modes object (convert minutes to seconds)
+      modes.focus = result.durations.focus * 60;
+      modes.short_break = result.durations.short_break * 60;
+      modes.long_break = result.durations.long_break * 60;
+
+      // Update timerState
+      timerState.mode_durations = modes;
+      timerState.duration = modes[timerState.mode];
+      timerState.timeLeft = modes[timerState.mode];
+
+      saveNewTimerState();
+      chrome.runtime.sendMessage({ type: "TIMER_UPDATE", newTimerState: timerState });
+    }
+  })
 }
 
 // Get timerState from chrome storage if exist, if not save the default values to chrome storage
@@ -97,6 +115,16 @@ chrome.storage.local.get("timerState", (result) => {
     chrome.storage.local.set({ "timerState": timerState });
   }
 })
+
+// After loading timerState, also load custom durations if they exist
+chrome.storage.local.get("durations", (result) => {
+  if (result.durations) {
+    modes.focus = result.durations.focus * 60;
+    modes.short_break = result.durations.short_break * 60;
+    modes.long_break = result.durations.long_break * 60;
+    timerState.mode_durations = modes;
+  }
+});
 
 // Listen for incoming messages
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -120,5 +148,38 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       changeMode(message.newMode);
       sendResponse({ reply: "Mode changed" });
       break;
+    case "CHANGE_DURATIONS":
+      changeDurations();
+      sendResponse({ reply: `Durations changed to, ${timerState.mode_durations}` })
+
   }
 })
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+  if (areaName === 'local' && changes.durations) {
+    const newDurations = changes.durations.newValue as Modes;
+
+    // Update modes (convert minutes to seconds)
+    modes.focus = newDurations.focus * 60;
+    modes.short_break = newDurations.short_break * 60;
+    modes.long_break = newDurations.long_break * 60;
+
+    // Update timerState
+    timerState.mode_durations = modes;
+
+    // Reset current mode to new duration if timer is stopped
+    if (timerState.status === 'stopped') {
+      timerState.duration = modes[timerState.mode];
+      timerState.timeLeft = modes[timerState.mode];
+    }
+
+    saveNewTimerState();
+    chrome.runtime.sendMessage({ type: "TIMER_UPDATE", newTimerState: timerState });
+  }
+  // Add this for mode changes
+  if (areaName === 'local' && changes.selectedMode) {
+    const newMode = changes.selectedMode.newValue as keyof Modes;
+    changeMode(newMode);
+  }
+});
