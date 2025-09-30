@@ -7,15 +7,25 @@ type Props = {
 }
 
 const Controlls = ({ isDarkMode, setIsDarkMode }: Props) => {
-  const openWindow = () => {
+  const openWindow = async () => {
+    // Get screen dimensions
+    const currentWindow = await chrome.windows.getCurrent();
+    const screenWidth = currentWindow.width || 1920;
+    
+    // Position at top-right corner
+    const windowWidth = 320;
+    const windowHeight = 400;
+    
     chrome.windows.create({
-      url: chrome.runtime.getURL("index.html"),
+      url: chrome.runtime.getURL("minimal.html"),
       type: "popup",
-      width: 380,
-      height: 336,
-      top: 0,
-      left: 0
-    })
+      width: windowWidth,
+      height: windowHeight,
+      top: 50,
+      left: screenWidth - windowWidth - 50,
+      focused: true,
+      state: "normal"
+    });
   };
 
   const openOptionsPage = () => {

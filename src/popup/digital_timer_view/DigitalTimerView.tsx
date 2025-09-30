@@ -1,33 +1,52 @@
+/**
+ * Digital Timer View Component
+ * 
+ * Displays the timer in a digital/numeric format with retro LED-style numbers.
+ */
+
 import type React from "react"
 import Controlls from "./Controlls";
 import TabMenu from "./TabMenu";
 import Timer from "./Timer";
+import type { Modes, TimerStatus } from "../../types";
 
-type Modes = {
-  focus: number,
-  short_break: number,
-  long_break: number
+/**
+ * Component props interface
+ */
+interface DigitalTimerViewProps {
+  isDarkMode: boolean;
+  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  currMode: keyof Modes;
+  setCurrMode: (mode: keyof Modes) => void;
+  remaining: number;
+  status: TimerStatus;
+  startTime: () => void;
+  stopTime: () => void;
+  resetTime: () => void;
 }
 
-type Props = {
-  isDarkMode: boolean,
-  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>,
-  currMode: keyof Modes,
-  setCurrMode: React.Dispatch<React.SetStateAction<keyof Modes>>,
-  remaining: number,
-  status: "running" | "stopped" | "paused",
-  startTime: () => void
-  stopTime: () => void
-  resetTime: () => void
-}
-
-const DigitalTimerView = (props: Props) => {
+const DigitalTimerView = (props: DigitalTimerViewProps) => {
   return (
-    <div className={`w-[380px] h-[336px] p-5 ${props.isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `} >
+    <div className={`w-[380px] h-[336px] p-5 ${props.isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `}>
+      {/* Mode selection tabs */}
       <TabMenu currMode={props.currMode} setCurrMode={props.setCurrMode} />
-      <Timer status={props.status} resetTime={props.resetTime} startTime={props.startTime} stopTime={props.stopTime} remaining={props.remaining} isDarkMode={props.isDarkMode} />
-      <Controlls isDarkMode={props.isDarkMode} setIsDarkMode={props.setIsDarkMode} />
-    </div >
+      
+      {/* Digital timer display with controls */}
+      <Timer 
+        status={props.status} 
+        resetTime={props.resetTime} 
+        startTime={props.startTime} 
+        stopTime={props.stopTime} 
+        remaining={props.remaining} 
+        isDarkMode={props.isDarkMode} 
+      />
+      
+      {/* Theme toggle controls */}
+      <Controlls 
+        isDarkMode={props.isDarkMode} 
+        setIsDarkMode={props.setIsDarkMode} 
+      />
+    </div>
   )
 }
 

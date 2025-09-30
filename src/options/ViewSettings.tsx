@@ -1,6 +1,8 @@
+import type { View } from "../types";
+
 type Props = {
-  currView: string;
-  setCurrView: React.Dispatch<React.SetStateAction<string>>;
+  currView: View;
+  setCurrView: (value: View) => void;
 }
 
 const ViewSettings = ({ currView, setCurrView }: Props) => {

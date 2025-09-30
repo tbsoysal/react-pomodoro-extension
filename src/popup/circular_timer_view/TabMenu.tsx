@@ -1,12 +1,8 @@
-type Modes = {
-  focus: number,
-  short_break: number,
-  long_break: number
-}
+import type { ModeKey } from "../../types";
 
 type Props = {
-  currMode: string;
-  setCurrMode: React.Dispatch<React.SetStateAction<keyof Modes>>;
+  currMode: ModeKey;
+  setCurrMode: (mode: ModeKey) => void;
 }
 
 const TabMenu = ({ currMode, setCurrMode }: Props) => {

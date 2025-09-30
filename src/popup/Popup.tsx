@@ -1,132 +1,175 @@
-import { useEffect, useState } from "react";
+/**
+ * Popup Component - Main Timer Interface
+ * 
+ * This is the main component shown when clicking the extension icon.
+ * It displays the timer in one of three views: circular, digital, or segmented.
+ */
+
+import { useState } from "react";
 import SegmentedTimerView from "./segmented_timer_view/SegmentedTimerView";
 import CircularTimerView from "./circular_timer_view/CircularTimerView";
 import DigitalTimerView from "./digital_timer_view/DigitalTimerView";
+import { useTimerState } from "../hooks/useTimerState";
+import { useStorage } from "../hooks/useStorage";
+import { storage } from "../utils/storageUtils";
+import { messages } from "../utils/messageUtils";
+import { CIRCUMFERENCE } from "../constants";
+import type { View } from "../types";
 
 const Popup = () => {
-  type Modes = {
-    focus: number,
-    short_break: number,
-    long_break: number
-  }
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
 
-  type TimerStatus = "running" | "stopped" | "paused";
-  type View = "circular" | "digital" | "segmented";
+  /**
+   * Timer state from background script
+   * Automatically syncs with background and updates in real-time
+   */
+  const { timerState, loading: timerLoading } = useTimerState();
 
-  const circumference = 2 * Math.PI * 72;
-  const [modes, setModes] = useState<Modes>({
-    "focus": 25,
-    "short_break": 5,
-    "long_break": 30
-  });
-  const [currMode, setCurrMode] = useState<keyof Modes>("focus");
-  const [duration, setDuration] = useState<number>(0);
-  const [remaining, setRemaining] = useState<number>(0);
-  const [status, setStatus] = useState<TimerStatus>("stopped");
+  /**
+   * Theme/view preference from storage
+   * Determines which timer view to show
+   */
+  const { value: theme, loading: themeLoading } = useStorage<View>(
+    storage.getTheme,
+    storage.setTheme,
+    'circular' // Default to circular view
+  );
+
+  /**
+   * Dark mode preference (local state only)
+   * Could be moved to storage if needed across sessions
+   */
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [theme, setTheme] = useState<View>("circular");
-  const progress = duration > 0 ? 1 - (remaining / duration) : 0;
 
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
 
-  // Get timerState from background script
-  function getLatestTimerState() {
-    chrome?.runtime?.sendMessage({ type: "GET_CURRENT_STATE" }, (response) => {
-      if (response?.success && response.reply) {
-        const timerState = response.reply;
-        setCurrMode(timerState.mode);
-        setDuration(timerState.duration);
-        setRemaining(timerState.timeLeft);
-        setStatus(timerState.status);
-        setModes(timerState.mode_durations)
-      }
-    });
+  /**
+   * Show loading indicator while fetching initial data
+   * Prevents rendering with incomplete data
+   */
+  if (timerLoading || themeLoading || !timerState) {
+    return (
+      <div className="flex items-center justify-center h-full p-8">
+        <p className="text-black text-2xl">Yükleniyor...</p>
+      </div>
+    );
   }
 
-  function getLatestTheme() {
-    chrome.storage.sync.get("theme", (data) => {
-      if (data.theme) {
-        setTheme(data.theme);
-        console.log("Latest theme getted from storage: ", data.theme);
-      } else {
-        console.log("No theme found on storage");
-      }
-    })
-  }
+  // ============================================================================
+  // TIMER CALCULATIONS
+  // ============================================================================
 
-  useEffect(() => {
-    getLatestTheme();
-    getLatestTimerState();
+  /**
+   * Calculate progress percentage (0 to 1)
+   * Used for visual progress indicators
+   */
+  const progress = timerState.duration > 0
+    ? 1 - (timerState.timeLeft / timerState.duration)
+    : 0;
 
-    // Listen for updates from background script
-    const handleMessage = (message: any) => {
-      if (message.type === "TIMER_UPDATE") {
-        const timerState = message.newTimerState;
-        setDuration(timerState.duration);
-        setRemaining(timerState.timeLeft);
-        setStatus(timerState.status);
-        setCurrMode(timerState.mode); // Remove conditional logic
-        setModes(timerState.mode_durations); // Add this line to update modes
-      }
+  // ============================================================================
+  // TIMER CONTROL HANDLERS
+  // ============================================================================
+
+  /**
+   * Start/resume timer
+   */
+  const handleStart = async () => {
+    try {
+      await messages.startTimer();
+    } catch (error) {
+      console.log('Could not start timer:', error);
     }
-    chrome?.runtime?.onMessage.addListener(handleMessage);
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        getLatestTimerState();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+  };
 
-    return () => {
-      chrome?.runtime?.onMessage.removeListener(handleMessage);
-      document.removeEventListener('visibilitychange', handleVisibilityChange); // Cleanup
-    };
-  }, []);
+  /**
+   * Pause timer
+   */
+  const handleStop = async () => {
+    try {
+      await messages.stopTimer();
+    } catch (error) {
+      console.log('Could not stop timer:', error);
+    }
+  };
 
-  useEffect(() => {
-    changeMode();
-  }, [currMode])
+  /**
+   * Reset timer to initial state
+   */
+  const handleReset = async () => {
+    try {
+      await messages.resetTimer();
+    } catch (error) {
+      console.log('Could not reset timer:', error);
+    }
+  };
 
-  useEffect(() => {
-    changeDurations();
-  }, [modes])
+  /**
+   * Change timer mode (focus, short_break, long_break)
+   * @param mode - New mode to switch to
+   */
+  const handleModeChange = async (mode: keyof typeof timerState.mode_durations) => {
+    try {
+      await messages.changeMode(mode);
+    } catch (error) {
+      console.log('Could not change mode:', error);
+    }
+  };
 
+  // ============================================================================
+  // SHARED PROPS FOR ALL VIEWS
+  // ============================================================================
 
-  const startTime = () => chrome?.runtime?.sendMessage({ type: "START_TIMER" }, (response) => console.log(response.reply));
-  const stopTime = () => chrome?.runtime?.sendMessage({ type: "STOP_TIMER" }, (response) => console.log(response.reply));
-  const resetTime = () => chrome?.runtime?.sendMessage({ type: "RESET_TIMER" }, (response) => console.log(response.reply));
-  const changeMode = () => chrome?.runtime?.sendMessage({ type: "CHANGE_MODE", newMode: currMode }, (response) => console.log(response.reply));
-  const changeDurations = () => chrome?.runtime?.sendMessage({ type: "CHANGE_DURATIONS" }, (response) => (response.reply));
-
-  const props = {
+  /**
+   * Common props passed to all timer view components
+   */
+  const sharedProps = {
+    // Theme
     isDarkMode,
     setIsDarkMode,
-    currMode,
-    setCurrMode,
-    modes,
-    setModes,
-    remaining,
+
+    // Current state
+    currMode: timerState.mode,
+    modes: timerState.mode_durations,
+    remaining: timerState.timeLeft,
+    status: timerState.status,
+
+    // Progress indicators
     progress,
-    circumference,
-    status,
-    startTime,
-    stopTime,
-    resetTime,
-  }
+    circumference: CIRCUMFERENCE,
 
-  let themeToShow;
+    // Control handlers
+    startTime: handleStart,
+    stopTime: handleStop,
+    resetTime: handleReset,
+    setCurrMode: handleModeChange,
+  };
 
-  if (theme === "circular")
-    themeToShow = <CircularTimerView {...props} />;
-  else if (theme === "digital")
-    themeToShow = <DigitalTimerView {...props} />;
-  else
-    themeToShow = <SegmentedTimerView {...props} />;
+  // ============================================================================
+  // VIEW SELECTION
+  // ============================================================================
 
-  return (
-    <>
-      {themeToShow}
-    </>
-  )
-}
+  /**
+   * Render appropriate timer view based on theme preference
+   */
+  const renderView = () => {
+    switch (theme) {
+      case "circular":
+        return <CircularTimerView {...sharedProps} />;
+      case "digital":
+        return <DigitalTimerView {...sharedProps} />;
+      case "segmented":
+        return <SegmentedTimerView {...sharedProps} />;
+      default:
+        return <CircularTimerView {...sharedProps} />;
+    }
+  };
+
+  return <>{renderView()}</>;
+};
 
 export default Popup;

@@ -1,67 +1,112 @@
-import { useEffect, useState } from "react";
-import Sidebar from "./SideBar.tsx";
-import ViewSettings from "./ViewSettings.tsx";
-import TimerSettings from "./TimerSettings.tsx";
-import Profile from "./Profile.tsx";
-import StatsSettings from "./StatsSettings.tsx";
-import PermissionsSettings from "./Permissions.tsx";
+/**
+ * Options Page Component
+ * 
+ * Full-page settings interface for the Pomodoro extension.
+ * Accessible via right-click on extension icon > Options.
+ */
+
+import { useState } from "react";
+import Sidebar from "./SideBar";
+import ViewSettings from "./ViewSettings";
+import TimerSettings from "./TimerSettings";
+import Profile from "./Profile";
+import StatsSettings from "./StatsSettings";
+import PermissionsSettings from "./Permissions";
+import { useStorage } from "../hooks/useStorage";
+import { storage } from "../utils/storageUtils";
+import { DEFAULT_DURATIONS } from "../constants";
+import type { View, Modes } from "../types";
+
+/**
+ * Available settings tabs
+ */
+type SettingsTab = "appearance" | "timer" | "permissions" | "stats" | "profile";
 
 function Options() {
-  const [selected, setSelected] = useState("appearance");
-  const [currView, setCurrView] = useState("circular");
-  const [durations, setDurations] = useState({ focus: 25, short_break: 5, long_break: 30 });
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
 
-  // İlk açıldığında storage'dan oku
-  useEffect(() => {
-    chrome.storage.local.get("theme", (data) => {
-      if (data.theme) {
-        setCurrView(data.theme);
-      }
-    });
-    chrome.storage.local.get("durations", (data) => {
-      if (data.durations) {
-        setDurations(data.durations)
-      }
-    });
-  }, []); // sadece bir kere çalışır
+  /**
+   * Currently selected settings tab
+   */
+  const [selected, setSelected] = useState<SettingsTab>("appearance");
 
-  // State değiştikçe storage'a yaz
-  useEffect(() => {
-    chrome.storage.local.set({ theme: currView }, () => {
-    });
-    chrome.storage.local.set({ durations: durations }, () => {
-    });
-  }, [currView, durations]);
+  /**
+   * Timer view preference (circular, digital, segmented)
+   * Synced with Chrome storage
+   */
+  const { value: currView, setValue: setCurrView } = useStorage<View>(
+    storage.getTheme,
+    storage.setTheme,
+    'circular' // Default view
+  );
 
-  let currentTab;
-  switch (selected) {
-    case "appearance":
-      currentTab = <ViewSettings currView={currView} setCurrView={setCurrView} />
-      break;
-    case "timer":
-      currentTab = <TimerSettings durations={durations} setDurations={setDurations} />
-      break;
-    case "permissions":
-      currentTab = <PermissionsSettings />
-      break;
-    case "stats":
-      currentTab = <StatsSettings />
-      break;
-    case "profile":
-      currentTab = <Profile />
-      break;
+  /**
+   * Custom timer durations
+   * Synced with Chrome storage
+   */
+  const { value: durations, setValue: setDurations } = useStorage<Modes>(
+    storage.getDurations,
+    storage.setDurations,
+    DEFAULT_DURATIONS // Default durations
+  );
 
-  }
+  // ============================================================================
+  // TAB CONTENT RENDERING
+  // ============================================================================
+
+  /**
+   * Render the appropriate settings component based on selected tab
+   */
+  const renderCurrentTab = () => {
+    switch (selected) {
+      case "appearance":
+        // Theme/view selection
+        return <ViewSettings currView={currView} setCurrView={setCurrView} />;
+      
+      case "timer":
+        // Timer duration settings
+        return <TimerSettings durations={durations} setDurations={setDurations} />;
+      
+      case "permissions":
+        // Extension permissions
+        return <PermissionsSettings />;
+      
+      case "stats":
+        // Usage statistics
+        return <StatsSettings />;
+      
+      case "profile":
+        // User profile
+        return <Profile />;
+      
+      default:
+        return <ViewSettings currView={currView} setCurrView={setCurrView} />;
+    }
+  };
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <div className="flex bg-[#0D0402]">
-      <Sidebar selectedId={selected} onSelect={setSelected} />
+      {/* Sidebar navigation */}
+      <Sidebar selectedId={selected} onSelect={(id) => setSelected(id as SettingsTab)} />
+      
+      {/* Main content area */}
       <main className="flex-1 border-l border-[#272322]">
-        <h1 className="font-semibold text-white text-2xl p-6 border-b border-[#272322]">Hoşgeldin Meryem!</h1>
-        {currentTab}
+        {/* Header */}
+        <h1 className="font-semibold text-white text-2xl p-6 border-b border-[#272322]">
+          Hoşgeldin Meryem!
+        </h1>
+        
+        {/* Settings content */}
+        {renderCurrentTab()}
       </main>
     </div>
   );
 }
-export default Options;
 
+export default Options;
