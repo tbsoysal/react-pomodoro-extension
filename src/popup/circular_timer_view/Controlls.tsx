@@ -27,8 +27,8 @@ const Controlls = ({ status, startTime, stopTime, resetTime, isDarkMode, setIsDa
     const screenWidth = currentWindow.width || 1920;
     
     // Position at top-right corner
-    const windowWidth = 320;
-    const windowHeight = 400;
+    const windowWidth = 268;
+    const windowHeight = 264;
     
     chrome.windows.create({
       url: chrome.runtime.getURL("minimal.html"),

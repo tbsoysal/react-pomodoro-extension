@@ -5,12 +5,25 @@
  * Shows only essential information without extra controls.
  */
 
+import { useState } from "react";
 import { useTimerState } from "../hooks/useTimerState";
+import { useStorage } from "../hooks/useStorage";
+import { storage } from "../utils/storageUtils";
 import { messages } from "../utils/messageUtils";
+import { CIRCUMFERENCE } from "../constants";
+import type { View } from "../types";
+import CircularTimer from "../popup/circular_timer_view/Timer";
+import SegmentedTimer from "../popup/segmented_timer_view/Timer";
 import "../main.css";
 
 const MinimalTimer = () => {
   const { timerState, loading } = useTimerState();
+  const { value: theme } = useStorage<View>(
+    storage.getTheme,
+    storage.setTheme,
+    'circular'
+  );
+  const [isDarkMode] = useState<boolean>(true);
 
   if (loading || !timerState) {
     return (
@@ -23,19 +36,13 @@ const MinimalTimer = () => {
   // Format time display
   const minutes = Math.floor(timerState.timeLeft / 60);
   const seconds = timerState.timeLeft % 60;
-  const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   // Calculate progress percentage
-  const progress = timerState.duration > 0 
-    ? (1 - (timerState.timeLeft / timerState.duration)) * 100
+  const progressRatio = timerState.duration > 0 
+    ? 1 - (timerState.timeLeft / timerState.duration)
     : 0;
 
-  // Mode labels
-  const modeLabels: Record<string, string> = {
-    focus: 'Odaklanma',
-    short_break: 'Kısa Mola',
-    long_break: 'Uzun Mola'
-  };
+  // Mode labels removed in mini view
 
   // Handle timer controls
   const handleToggleTimer = async () => {
@@ -46,64 +53,76 @@ const MinimalTimer = () => {
     }
   };
 
-  const handleReset = async () => {
-    await messages.resetTimer();
+  // Note: reset is not surfaced in the mini window per requirements
+
+  // Mini displays per theme
+  const renderMiniDisplay = () => {
+    if (theme === 'circular') {
+      return (
+        <div className="scale-[0.9] -my-1">
+          <CircularTimer
+            remaining={timerState.timeLeft}
+            progress={progressRatio}
+            circumference={CIRCUMFERENCE}
+            isDarkMode={isDarkMode}
+          />
+        </div>
+      );
+    }
+
+    if (theme === 'segmented') {
+      return (
+        <div className="scale-[0.9] -my-1">
+          <SegmentedTimer
+            remaining={timerState.timeLeft}
+          />
+        </div>
+      );
+    }
+
+    // digital: compact stacked numbers with right-side labels
+    return (
+      <div className="relative flex flex-col justify-center items-center my-1 w-full">
+        <div className="flex items-baseline gap-2 leading-none">
+          <p className={`text-5xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>{String(minutes).padStart(2, '0')}</p>
+          <span className="text-xl text-[#6C6461]">min</span>
+        </div>
+        <div className="flex items-baseline gap-2 leading-none mt-1">
+          <p className={`text-5xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>{String(seconds).padStart(2, '0')}</p>
+          <span className="text-xl text-[#6C6461]">sec</span>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-[#0D0C0C] to-[#1D1A19] flex flex-col items-center justify-center p-6">
-      {/* Mode Badge */}
-      <div className="mb-4">
-        <span className="text-xs text-[#9F938F] uppercase tracking-wider">
-          {modeLabels[timerState.mode]}
-        </span>
+    <div className="w-full h-screen bg-gradient-to-br from-[#0D0C0C] to-[#1D1A19] flex flex-col items-center justify-between p-2">
+
+      <div className="flex-1 w-full flex items-center justify-center overflow-hidden">
+        {renderMiniDisplay()}
       </div>
 
-      {/* Timer Display */}
-      <div className="relative mb-8">
-        <div className="text-7xl font-bold text-white font-mono tracking-tight">
-          {timeString}
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="w-full max-w-[280px] mb-6">
-        <div className="h-1 bg-[#272322] rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-[#D84315] to-[#FF6B3D] transition-all duration-1000 ease-linear"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex gap-3">
+      <div className="w-full flex items-center justify-center gap-2 pb-1">
+        <button
+          onClick={() => { /* already mini */ }}
+          className="flex items-center p-[6px] rounded-full bg-[#1D1A19]"
+          title="Mini Window"
+        >
+          <img className="w-5 h-5" src="/icons/alwaysOnTop.svg" />
+        </button>
         <button
           onClick={handleToggleTimer}
-          className="px-6 py-2.5 bg-gradient-to-b from-[#D84315] to-[#BF360C] hover:from-[#FF4D1C] hover:to-[#D84315] text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+          className="px-[14px] py-[6px] bg-[#1D1A19] hover:bg-[#2A2625] text-white text-sm font-semibold rounded-full transition-colors duration-200"
         >
           {timerState.status === "running" ? "Duraklat" : "Başlat"}
         </button>
         <button
-          onClick={handleReset}
-          className="px-6 py-2.5 bg-[#1D1A19] hover:bg-[#2A2625] text-white text-sm font-semibold rounded-lg transition-colors duration-200"
+          onClick={() => chrome.runtime.openOptionsPage()}
+          className="flex items-center p-[6px] rounded-full bg-[#1D1A19]"
+          title="Ayarlar"
         >
-          Sıfırla
+          <img className="w-5 h-5" src="/icons/options.svg" />
         </button>
-      </div>
-
-      {/* Status Indicator */}
-      <div className="mt-6 flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${
-          timerState.status === "running" 
-            ? "bg-green-500 animate-pulse" 
-            : timerState.status === "paused"
-            ? "bg-yellow-500"
-            : "bg-gray-500"
-        }`} />
-        <span className="text-xs text-[#9F938F]">
-          {timerState.status === "running" ? "Çalışıyor" : timerState.status === "paused" ? "Duraklatıldı" : "Durduruldu"}
-        </span>
       </div>
     </div>
   );
