@@ -26,7 +26,8 @@ export const STORAGE_KEYS = {
   DURATIONS: 'durations',
   THEME: 'theme',
   SELECTED_MODE: 'selectedMode',
-  BLOCKED_SITES: 'blockedSites'
+  BLOCKED_SITES: 'blockedSites',
+  BLOCK_NOTIFICATIONS: 'blockNotifications'
 } as const;
 
 /**

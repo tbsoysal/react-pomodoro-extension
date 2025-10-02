@@ -5,21 +5,27 @@ const PermissionsSettings = () => {
   const [blockedSites, setBlockedSites] = useState<string[]>([]);
   const [newSite, setNewSite] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [blockNotifications, setBlockNotifications] = useState<boolean>(true);
 
-  // Load blocked sites on mount
+  // Load settings on mount
   useEffect(() => {
-    const loadBlockedSites = async () => {
+    const loadSettings = async () => {
       try {
-        const sites = await storage.getBlockedSites();
+        const [sites, notifications] = await Promise.all([
+          storage.getBlockedSites(),
+          storage.getBlockNotifications()
+        ]);
         setBlockedSites(sites);
+        setBlockNotifications(notifications ?? true); // Default to true if not set
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading blocked sites:', error);
+        console.error('Error loading settings:', error);
         setBlockedSites([]);
+        setBlockNotifications(true);
         setIsLoading(false);
       }
     };
-    loadBlockedSites();
+    loadSettings();
   }, []);
 
   // Save blocked sites to storage
@@ -86,6 +92,17 @@ const PermissionsSettings = () => {
     }
   };
 
+  // Save notification blocking preference
+  const handleNotificationToggle = async (value: boolean) => {
+    try {
+      await storage.setBlockNotifications(value);
+      setBlockNotifications(value);
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+      alert('Bildirim ayarları kaydedilirken hata oluştu!');
+    }
+  };
+
   if (isLoading) {
     return <div className="p-6 text-white">Yükleniyor...</div>;
   }
@@ -93,6 +110,55 @@ const PermissionsSettings = () => {
   return (
     <div className="p-6 text-white">
       <h2 className="font-medium text-lg mb-6">Dikkat Yönetimi</h2>
+
+      {/* Notification Blocking Section */}
+      <div className="flex gap-6 mb-8">
+        <div className="w-[344px]">
+          <h3 className="font-medium text-sm mb-1">Bildirim Engelleme</h3>
+          <p className="text-sm text-[#9F938F]">
+            Odaklanma modunda web sitesi bildirimlerini engelleyin.
+            Bu özellik dikkatinizi dağıtan bildirimleri engeller.
+          </p>
+        </div>
+
+        <div className="w-[344px]">
+          <div className="flex items-center justify-between bg-[#1D1A19] rounded-lg px-4 py-3">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-[#CEC8C6]">
+                Bildirimleri Engelle
+              </span>
+              <span className="text-xs text-[#9F938F]">
+                Odak modunda tüm bildirimleri engelle
+              </span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={blockNotifications}
+                onChange={(e) => handleNotificationToggle(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#2A2625] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D84315]"></div>
+            </label>
+          </div>
+          
+          {blockNotifications && (
+            <div className="mt-3 p-3 bg-[#2A2625] rounded-lg">
+              <div className="flex items-start gap-2">
+                <div className="text-[#D84315] text-sm">ℹ️</div>
+                <div className="text-xs text-[#9F938F]">
+                  <p className="mb-1">Bildirim engelleme şunları içerir:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Web sitesi bildirim izinleri</li>
+                    <li>Push bildirimler</li>
+                    <li>Mevcut açık bildirimler</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="flex gap-6 mb-8">
         <div className="w-[344px]">

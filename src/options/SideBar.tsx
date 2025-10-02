@@ -29,18 +29,6 @@ const Sidebar: FC<SidebarProps> = ({ onSelect, selectedId }) => {
     <aside className="h-screen w-[312px] text-white flex flex-col justify-between px-6 py-8">
       {/* User Info */}
       <div>
-        {/* Logo */}
-        <img className="w-9 ml-4 mb-10" src="/icons/logo.svg" />
-        <div className="flex items-center gap-3 mb-8 px-4 py-2.5 bg-[#240E07] rounded-lg">
-          <div className="w-[45px] h-[45px] rounded-full flex items-center justify-center text-xl">
-            <img className="w-full h-full" src="/icons/profile-picture.png" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">Meryem Demir</p>
-            <p className="text-sm text-[#9F938F]">meryemdemir.ui@gmail.com</p>
-          </div>
-        </div>
-
         {/* Menu */}
         <nav className="flex flex-col gap-2">
           <p className="text-[#9F938F] px-3 py-2 text-sm">Ana menü</p>

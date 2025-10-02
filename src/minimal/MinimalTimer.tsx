@@ -5,7 +5,7 @@
  * Shows only essential information without extra controls.
  */
 
-import { useState } from "react";
+import { } from "react";
 import { useTimerState } from "../hooks/useTimerState";
 import { useStorage } from "../hooks/useStorage";
 import { storage } from "../utils/storageUtils";
@@ -23,7 +23,7 @@ const MinimalTimer = () => {
     storage.setTheme,
     'circular'
   );
-  const [isDarkMode] = useState<boolean>(true);
+  
 
   if (loading || !timerState) {
     return (
@@ -64,7 +64,6 @@ const MinimalTimer = () => {
             remaining={timerState.timeLeft}
             progress={progressRatio}
             circumference={CIRCUMFERENCE}
-            isDarkMode={isDarkMode}
           />
         </div>
       );
@@ -84,11 +83,11 @@ const MinimalTimer = () => {
     return (
       <div className="relative flex flex-col justify-center items-center my-1 w-full">
         <div className="flex items-baseline gap-2 leading-none">
-          <p className={`text-5xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>{String(minutes).padStart(2, '0')}</p>
+          <p className={`text-5xl font-semibold text-white`}>{String(minutes).padStart(2, '0')}</p>
           <span className="text-xl text-[#6C6461]">min</span>
         </div>
         <div className="flex items-baseline gap-2 leading-none mt-1">
-          <p className={`text-5xl font-semibold ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>{String(seconds).padStart(2, '0')}</p>
+          <p className={`text-5xl font-semibold text-white`}>{String(seconds).padStart(2, '0')}</p>
           <span className="text-xl text-[#6C6461]">sec</span>
         </div>
       </div>

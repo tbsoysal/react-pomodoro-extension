@@ -1,11 +1,10 @@
 type Props = {
   circumference: number;
-  isDarkMode: boolean;
   progress: number;
   remaining: number;
 }
 
-const Timer = ({ remaining, progress, circumference, isDarkMode }: Props) => {
+const Timer = ({ remaining, progress, circumference }: Props) => {
   return (
     <div className="relative flex justify-center items-center m-5">
       <svg width="160" height="160">
@@ -21,7 +20,7 @@ const Timer = ({ remaining, progress, circumference, isDarkMode }: Props) => {
           cx="80"
           cy="80" />
       </svg>
-      <div className={`absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] text-2xl font-semibold inline-block w-[66px] ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>
+      <div className={`absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] text-2xl font-semibold inline-block w-[66px] text-white`}>
         {Math.floor((remaining) / 60).toString().padStart(2, "0")}:
         {Math.floor((remaining) % 60).toString().padStart(2, "0")}
       </div>

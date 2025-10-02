@@ -64,23 +64,23 @@ function Options() {
       case "appearance":
         // Theme/view selection
         return <ViewSettings currView={currView} setCurrView={setCurrView} />;
-      
+
       case "timer":
         // Timer duration settings
         return <TimerSettings durations={durations} setDurations={setDurations} />;
-      
+
       case "permissions":
         // Extension permissions
         return <PermissionsSettings />;
-      
+
       case "stats":
         // Usage statistics
         return <StatsSettings />;
-      
+
       case "profile":
         // User profile
         return <Profile />;
-      
+
       default:
         return <ViewSettings currView={currView} setCurrView={setCurrView} />;
     }
@@ -94,14 +94,14 @@ function Options() {
     <div className="flex bg-[#0D0402]">
       {/* Sidebar navigation */}
       <Sidebar selectedId={selected} onSelect={(id) => setSelected(id as SettingsTab)} />
-      
+
       {/* Main content area */}
       <main className="flex-1 border-l border-[#272322]">
         {/* Header */}
         <h1 className="font-semibold text-white text-2xl p-6 border-b border-[#272322]">
-          Hoşgeldin Meryem!
+          Hoşgeldin!
         </h1>
-        
+
         {/* Settings content */}
         {renderCurrentTab()}
       </main>

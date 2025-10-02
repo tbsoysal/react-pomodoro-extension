@@ -4,7 +4,6 @@
  * Displays the timer in a segmented/minimalist format with text-based display.
  */
 
-import type React from "react"
 import Controlls from "./Controlls";
 import TabMenu from "./TabMenu";
 import Timer from "./Timer";
@@ -14,8 +13,6 @@ import type { Modes, TimerStatus } from "../../types";
  * Component props interface
  */
 interface SegmentedTimerViewProps {
-  isDarkMode: boolean;
-  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   currMode: keyof Modes;
   setCurrMode: (mode: keyof Modes) => void;
   remaining: number;
@@ -29,7 +26,7 @@ interface SegmentedTimerViewProps {
 
 const SegmentedTimerView = (props: SegmentedTimerViewProps) => {
   return (
-    <div className={`w-[380px] h-[336px] p-5 ${props.isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `}>
+    <div className={`w-[380px] h-[336px] p-5 bg-[#0D0402]`}>
       {/* Mode selection tabs */}
       <TabMenu currMode={props.currMode} setCurrMode={props.setCurrMode} />
       
@@ -42,8 +39,6 @@ const SegmentedTimerView = (props: SegmentedTimerViewProps) => {
         startTime={props.startTime} 
         resetTime={props.resetTime} 
         stopTime={props.stopTime} 
-        isDarkMode={props.isDarkMode} 
-        setIsDarkMode={props.setIsDarkMode} 
       />
     </div>
   )

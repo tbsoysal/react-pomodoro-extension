@@ -1,5 +1,4 @@
 type Props = {
-  isDarkMode: boolean;
   remaining: number;
   status: "running" | "stopped" | "paused";
   stopTime: () => void;
@@ -7,7 +6,7 @@ type Props = {
   resetTime: () => void;
 }
 
-const Timer = ({ remaining, isDarkMode, status, stopTime, startTime, resetTime }: Props) => {
+const Timer = ({ remaining, status, stopTime, startTime, resetTime }: Props) => {
 
   const toggleTime = () => {
     if (status === "running") {
@@ -20,18 +19,18 @@ const Timer = ({ remaining, isDarkMode, status, stopTime, startTime, resetTime }
 
   return (
     <div className="relative h-[164px] flex justify-between items-center my-5">
-      <div className={`text-4xl font-semibold inline-block w-[66px] ${isDarkMode ? 'text-white' : 'text-[#F02900]'}`}>
-        <div className="flex items-baseline font-medium">
-          <p className="w-[60px] text-center flex-none">
+      <div className={`text-6xl font-semibold inline-block w-[66px] text-white`}>
+        <div className="flex items-baseline gap-1 font-medium">
+          <p className="leading-[72px] text-center flex-none">
             {Math.floor((remaining) / 60).toString().padStart(2, "0")}
           </p>
-          <span className="text-[16px] text-[#6C6461] inline-block w-max flex-none">min</span>
+          <span className="text-2xl text-[#6C6461] inline-block w-max flex-none">min</span>
         </div>
-        <div className="flex items-baseline font-medium">
-          <p className="w-[60px] text-center flex-none">
+        <div className="flex items-baseline gap-1 font-medium">
+          <p className="leading-[72px] text-center flex-none">
             {Math.floor((remaining) % 60).toString().padStart(2, "0")}
           </p>
-          <span className="text-[16px] text-[#6C6461] inline-block w-max flex-none">sec</span>
+          <span className="text-2xl text-[#6C6461] inline-block w-max flex-none">sec</span>
         </div>
       </div>
       <div className="flex gap-[6px]">

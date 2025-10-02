@@ -4,7 +4,6 @@
  * Displays the timer in a digital/numeric format with retro LED-style numbers.
  */
 
-import type React from "react"
 import Controlls from "./Controlls";
 import TabMenu from "./TabMenu";
 import Timer from "./Timer";
@@ -14,8 +13,6 @@ import type { Modes, TimerStatus } from "../../types";
  * Component props interface
  */
 interface DigitalTimerViewProps {
-  isDarkMode: boolean;
-  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   currMode: keyof Modes;
   setCurrMode: (mode: keyof Modes) => void;
   remaining: number;
@@ -27,7 +24,7 @@ interface DigitalTimerViewProps {
 
 const DigitalTimerView = (props: DigitalTimerViewProps) => {
   return (
-    <div className={`w-[380px] h-[336px] p-5 ${props.isDarkMode ? 'bg-[#0D0402]' : 'bg-white'} `}>
+    <div className={`w-[380px] h-[336px] p-5 bg-[#0D0402]`}>
       {/* Mode selection tabs */}
       <TabMenu currMode={props.currMode} setCurrMode={props.setCurrMode} />
       
@@ -38,14 +35,10 @@ const DigitalTimerView = (props: DigitalTimerViewProps) => {
         startTime={props.startTime} 
         stopTime={props.stopTime} 
         remaining={props.remaining} 
-        isDarkMode={props.isDarkMode} 
       />
       
-      {/* Theme toggle controls */}
-      <Controlls 
-        isDarkMode={props.isDarkMode} 
-        setIsDarkMode={props.setIsDarkMode} 
-      />
+      {/* Controls */}
+      <Controlls />
     </div>
   )
 }

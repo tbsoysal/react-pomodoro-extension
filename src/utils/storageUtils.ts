@@ -140,5 +140,29 @@ export const storage = {
         }
       });
     });
+  },
+
+  /**
+   * Get notification blocking preference from storage
+   * @returns Promise resolving to boolean or null
+   */
+  getBlockNotifications(): Promise<boolean | null> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(STORAGE_KEYS.BLOCK_NOTIFICATIONS, (data) => {
+        resolve(data[STORAGE_KEYS.BLOCK_NOTIFICATIONS] ?? null);
+      });
+    });
+  },
+
+  /**
+   * Save notification blocking preference to storage
+   * @param blockNotifications - Whether to block notifications during focus mode
+   */
+  setBlockNotifications(blockNotifications: boolean): Promise<void> {
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ [STORAGE_KEYS.BLOCK_NOTIFICATIONS]: blockNotifications }, () => {
+        resolve();
+      });
+    });
   }
 };

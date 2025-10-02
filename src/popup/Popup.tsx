@@ -5,7 +5,7 @@
  * It displays the timer in one of three views: circular, digital, or segmented.
  */
 
-import { useState } from "react";
+import { } from "react";
 import SegmentedTimerView from "./segmented_timer_view/SegmentedTimerView";
 import CircularTimerView from "./circular_timer_view/CircularTimerView";
 import DigitalTimerView from "./digital_timer_view/DigitalTimerView";
@@ -37,11 +37,7 @@ const Popup = () => {
     'circular' // Default to circular view
   );
 
-  /**
-   * Dark mode preference (local state only)
-   * Could be moved to storage if needed across sessions
-   */
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  
 
   // ============================================================================
   // LOADING STATE
@@ -128,10 +124,6 @@ const Popup = () => {
    * Common props passed to all timer view components
    */
   const sharedProps = {
-    // Theme
-    isDarkMode,
-    setIsDarkMode,
-
     // Current state
     currMode: timerState.mode,
     modes: timerState.mode_durations,
